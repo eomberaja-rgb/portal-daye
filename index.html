@@ -262,14 +262,96 @@
 
   .tag { display: inline-flex; align-items: center; gap: 4px; background: var(--cream); color: var(--ink-soft); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 500; padding: 3px 10px; }
 
-  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; z-index: 1000; transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none; }
-  .toast.show { transform: translateY(0); opacity: 1; }
+  .admin-mobile-bar { display: none; background: var(--ink); padding: 12px 16px; gap: 8px; flex-wrap: wrap; }
 
-  @media(max-width:600px){
-    .form-grid { grid-template-columns: 1fr; }
-    .admin-sidebar { display: none; }
+  /* Prevenir zoom en iOS al tocar inputs */
+  @supports (-webkit-touch-callout: none) {
+    .form-group input, .form-group select, .form-group textarea,
+    .search-bar input, .search-bar select { font-size: 16px !important; }
+  }
+
+  @media(max-width:768px){
+    /* NAV */
+    nav { padding: 0 16px; height: 56px; }
+    .nav-logo svg { height: 34px; }
+    .btn-ghost { display: none; }
+
+    /* HERO */
+    .hero { padding: 36px 16px 48px; }
+    .hero h1 { font-size: 28px; }
+    .search-bar { flex-direction: column; gap: 4px; padding: 10px; border-radius: 12px; }
+    .search-bar select, .search-bar input { width: 100%; min-width: unset; padding: 10px 12px; }
+    .search-bar .divider { display: none; }
+    .search-bar .btn { width: 100%; justify-content: center; padding: 12px; }
+
+    /* FILTROS AVANZADOS — scroll horizontal en mobile */
+    .filters-panel { padding: 12px 0; }
+    .filters-inner { flex-wrap: nowrap; overflow-x: auto; padding: 0 16px; gap: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .filters-inner::-webkit-scrollbar { display: none; }
+    .filter-group select, .filter-group input { min-width: 110px; }
+    .filters-sort { flex-shrink: 0; }
+    .active-filters { padding: 8px 16px 0; }
+
+    /* STATS */
+    .stats-bar { gap: 16px; padding: 12px 16px; font-size: 12px; }
+    .stats-bar strong { font-size: 16px; }
+
+    /* LISTING */
+    .listing-container { padding: 20px 16px; }
+    .properties-grid { grid-template-columns: 1fr; gap: 14px; }
     .properties-grid.list-view .property-card { grid-template-columns: 1fr; }
-    .properties-grid.list-view .card-img { height: 180px; }
+    .properties-grid.list-view .card-img { height: 200px; }
+
+    /* DETAIL */
+    .detail-container { padding: 20px 16px; }
+    .detail-grid { grid-template-columns: 1fr; gap: 20px; }
+    .detail-price { font-size: 26px; }
+    .detail-gallery img { max-height: 260px; }
+    .contact-card { position: static; }
+
+  /* MODAL */
+    .modal { padding: 20px 16px; margin: 0; border-radius: 16px 16px 0 0; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .modal-overlay { align-items: flex-end; padding: 0; }
+    .form-grid { grid-template-columns: 1fr; }
+    /* Asegurar que inputs sean tocables */
+    .form-group input, .form-group select, .form-group textarea { font-size: 16px !important; padding: 12px 14px !important; }
+    /* Botones del form más grandes */
+    .form-actions { position: sticky; bottom: 0; background: white; padding: 12px 0 4px; border-top: 1px solid var(--border); z-index: 10; }
+    .form-actions .btn { flex: 1; justify-content: center; padding: 14px !important; font-size: 15px !important; }
+    /* Drop zone fotos más grande y visible */
+    #photo-drop-zone { padding: 24px 16px !important; }
+    #photo-drop-zone div:first-child { font-size: 36px !important; }
+    /* Geo btn */
+    #geo-btn { padding: 12px 16px !important; font-size: 14px !important; }
+
+    /* ADMIN mobile */
+    .admin-sidebar { display: none; }
+    .admin-main { padding: 16px; }
+    .admin-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .admin-header .btn { width: 100%; justify-content: center; padding: 14px !important; font-size: 15px !important; }
+    .admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    /* En mobile mostrar tabla más compacta */
+    .admin-table th:nth-child(3),
+    .admin-table td:nth-child(3),
+    .admin-table th:nth-child(4),
+    .admin-table td:nth-child(4) { display: none; }
+    /* Barra admin mobile top */
+    .admin-mobile-bar { display: flex !important; }
+
+    /* FOOTER */
+    #main-footer { padding: 32px 16px; }
+    #main-footer > div > div[style*="flex"] {
+      flex-direction: column; gap: 14px; align-items: center;
+    }
+
+    /* BOTÓN WA FLOTANTE */
+    #wa-float { bottom: 16px; right: 16px; width: 50px; height: 50px; }
+  }
+
+  @media(max-width:400px){
+    .hero h1 { font-size: 24px; }
+    .nav-logo svg { height: 28px; }
+    .btn-primary { font-size: 12px; padding: 6px 12px; }
   }
 </style>
 </head>
@@ -484,6 +566,13 @@
 
 <!-- ══ ADMIN ══ -->
 <div id="view-admin" class="view">
+  <!-- Barra mobile -->
+  <div class="admin-mobile-bar" id="admin-mobile-bar">
+    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);flex:1" onclick="adminTab('propiedades',this)">🏠 Propiedades</button>
+    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);flex:1" onclick="adminTab('estadisticas',this)">📊 Stats</button>
+    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3)" onclick="showView('portal')">👁</button>
+    <button class="btn btn-danger" onclick="doLogout()">↩</button>
+  </div>
   <div class="admin-layout">
     <div class="admin-sidebar">
       <div class="logo">Dayé Corp.</div>
@@ -526,13 +615,21 @@
       <div class="form-group form-full"><label>Título</label><input id="f-titulo" placeholder="Ej: Casa con jardín en Palermo"></div>
       <div class="form-group">
         <label>Categoría</label>
-        <select id="f-categoria"><option>Casa</option><option>Departamento</option><option>PH</option><option>Oficina</option><option>Local</option><option>Terreno</option></select>
+        <select id="f-categoria" onchange="toggleFrenteFondo()"><option>Casa</option><option>Departamento</option><option>PH</option><option>Oficina</option><option>Local</option><option>Terreno</option></select>
       </div>
       <div class="form-group">
         <label>Operación</label>
         <select id="f-operacion"><option value="venta">Venta</option><option value="alquiler">Alquiler</option></select>
       </div>
-      <div class="form-group"><label>Precio (USD)</label><input id="f-precio" type="number" placeholder="180000"></div>
+      <!-- PRECIO + MONEDA -->
+      <div class="form-group">
+        <label>Moneda</label>
+        <select id="f-moneda">
+          <option value="USD">USD — Dólares</option>
+          <option value="ARS">$ — Pesos</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Precio</label><input id="f-precio" type="number" placeholder="180000"></div>
       <div class="form-group"><label>Barrio / Zona</label><input id="f-zona" placeholder="Ej: Palermo, CABA"></div>
       <div class="form-group form-full">
         <label>Dirección completa</label>
@@ -552,6 +649,13 @@
       <div class="form-group"><label>Ambientes</label><input id="f-amb" type="number" placeholder="3"></div>
       <div class="form-group"><label>Dormitorios</label><input id="f-dorm" type="number" placeholder="2"></div>
       <div class="form-group"><label>Baños</label><input id="f-ban" type="number" placeholder="1"></div>
+      <!-- FRENTE / FONDO — solo para Local -->
+      <div id="frente-fondo-group" class="form-full" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-group"><label>Frente (m)</label><input id="f-frente" type="number" placeholder="8"></div>
+          <div class="form-group"><label>Fondo (m)</label><input id="f-fondo" type="number" placeholder="20"></div>
+        </div>
+      </div>
       <div class="form-group form-full">
         <label>Fotos de la propiedad</label>
         <div id="photo-drop-zone" onclick="document.getElementById('f-fotos').click()"
@@ -608,7 +712,7 @@
       Dayé <span style="color:var(--accent)">Corporation</span>
     </div>
     <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px;color:rgba(255,255,255,0.4)">Operaciones Inmobiliarias</div>
-    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;align-items:center">
       <a href="https://wa.me/5491131146870" target="_blank" style="color:rgba(255,255,255,0.85);text-decoration:none;display:flex;align-items:center;gap:8px;font-size:14px;transition:color 0.2s" onmouseover="this.style.color='#25D366'" onmouseout="this.style.color='rgba(255,255,255,0.85)'">
         <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5A10.44 10.44 0 0 0 16 5.5C10.2 5.5 5.5 10.2 5.5 16c0 1.85.49 3.65 1.41 5.24L5.5 26.5l5.4-1.4A10.46 10.46 0 0 0 16 26.5c5.8 0 10.5-4.7 10.5-10.5 0-2.8-1.09-5.43-3-7.5zm-7.5 16.15a8.7 8.7 0 0 1-4.44-1.21l-.32-.19-3.2.84.85-3.12-.21-.32A8.72 8.72 0 0 1 7.3 16c0-4.8 3.9-8.7 8.7-8.7 2.32 0 4.5.9 6.14 2.54A8.64 8.64 0 0 1 24.7 16c0 4.8-3.9 8.65-8.7 8.65zm4.77-6.5c-.26-.13-1.55-.76-1.79-.85-.24-.09-.41-.13-.58.13-.17.26-.66.85-.81 1.02-.15.17-.3.19-.56.06-.26-.13-1.1-.4-2.1-1.29-.78-.69-1.3-1.54-1.45-1.8-.15-.26-.02-.4.11-.53.12-.12.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.06-.13-.58-1.39-.79-1.9-.21-.5-.42-.43-.58-.44h-.5c-.17 0-.45.06-.69.32-.24.26-.9.88-.9 2.14s.92 2.49 1.05 2.66c.13.17 1.81 2.76 4.38 3.87.61.26 1.09.42 1.46.54.61.19 1.17.16 1.61.1.49-.07 1.55-.63 1.77-1.24.22-.61.22-1.13.15-1.24-.06-.11-.24-.17-.5-.3z" fill="white"/></svg>
         11 3114-6870
@@ -838,10 +942,16 @@ function updateStats() {
   document.getElementById('stat-alquiler').textContent = a.filter(p => p.operacion === 'alquiler').length;
 }
 
+function toggleFrenteFondo() {
+  const cat = document.getElementById('f-categoria').value;
+  document.getElementById('frente-fondo-group').style.display = (cat === 'Local') ? 'block' : 'none';
+}
+
 function formatPrice(p) {
-  return p.operacion === 'alquiler'
-    ? `USD ${Number(p.precio).toLocaleString()}/mes`
-    : `USD ${Number(p.precio).toLocaleString()}`;
+  const moneda = p.moneda || 'USD';
+  const num = Number(p.precio).toLocaleString('es-AR');
+  const sufijo = p.operacion === 'alquiler' ? '/mes' : '';
+  return moneda === 'USD' ? `USD ${num}${sufijo}` : `$ ${num}${sufijo}`;
 }
 
 function clearFilters() {
@@ -924,6 +1034,8 @@ function openDetail(id) {
           ${p.amb?`<div class="feature-item"><div class="value">${p.amb}</div><div class="label">Ambientes</div></div>`:''}
           ${p.dorm?`<div class="feature-item"><div class="value">${p.dorm}</div><div class="label">Dormitorios</div></div>`:''}
           ${p.ban?`<div class="feature-item"><div class="value">${p.ban}</div><div class="label">Baños</div></div>`:''}
+          ${p.frente?`<div class="feature-item"><div class="value">${p.frente}m</div><div class="label">Frente</div></div>`:''}
+          ${p.fondo?`<div class="feature-item"><div class="value">${p.fondo}m</div><div class="label">Fondo</div></div>`:''}
         </div>
         <p class="detail-description">${p.descripcion||''}</p>
         ${p.lat&&p.lng?`<div class="detail-map" id="detail-map-container"></div>`:''}
@@ -1220,11 +1332,15 @@ function openModal(id=null) {
     document.getElementById('f-amb').value       = p.amb||'';
     document.getElementById('f-dorm').value      = p.dorm||'';
     document.getElementById('f-ban').value       = p.ban||'';
+    document.getElementById('f-moneda').value   = p.moneda||'USD';
     document.getElementById('f-lat').value       = p.lat||'';
     document.getElementById('f-lng').value       = p.lng||'';
     document.getElementById('f-wp').value        = p.wp||'';
     document.getElementById('f-desc').value      = p.descripcion||'';
     document.getElementById('f-estado').value    = p.estado||'activa';
+    document.getElementById('f-frente').value    = p.frente||'';
+    document.getElementById('f-fondo').value     = p.fondo||'';
+    toggleFrenteFondo();
     existingPhotoUrls = p.fotos ? [...p.fotos] : [];
     if (p.lat && p.lng) {
       setGeoStatus('✅ Ubicación cargada', 'ok');
@@ -1232,10 +1348,12 @@ function openModal(id=null) {
       setTimeout(()=>initMap('geo-map', p.lat, p.lng, p.titulo, '', 16), 100);
     }
   } else {
-    ['f-titulo','f-precio','f-zona','f-direccion','f-sup','f-amb','f-dorm','f-ban','f-lat','f-lng','f-wp','f-desc'].forEach(i=>document.getElementById(i).value='');
+    ['f-titulo','f-precio','f-zona','f-direccion','f-sup','f-amb','f-dorm','f-ban','f-lat','f-lng','f-wp','f-desc','f-frente','f-fondo'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('f-categoria').value='Casa';
+    document.getElementById('f-moneda').value='USD';
     document.getElementById('f-operacion').value='venta';
     document.getElementById('f-estado').value='activa';
+    toggleFrenteFondo();
   }
   renderPhotoPreviews();
   document.getElementById('modal-overlay').classList.add('open');
@@ -1259,6 +1377,7 @@ async function saveProperty() {
     titulo:      document.getElementById('f-titulo').value.trim(),
     categoria:   document.getElementById('f-categoria').value,
     operacion:   document.getElementById('f-operacion').value,
+    moneda:      document.getElementById('f-moneda').value,
     precio:      parseFloat(document.getElementById('f-precio').value)||0,
     zona:        document.getElementById('f-zona').value.trim(),
     direccion:   document.getElementById('f-direccion').value.trim(),
@@ -1266,6 +1385,8 @@ async function saveProperty() {
     amb:         parseInt(document.getElementById('f-amb').value)||null,
     dorm:        parseInt(document.getElementById('f-dorm').value)||null,
     ban:         parseInt(document.getElementById('f-ban').value)||null,
+    frente:      parseFloat(document.getElementById('f-frente').value)||null,
+    fondo:       parseFloat(document.getElementById('f-fondo').value)||null,
     lat, lng,
     wp:          document.getElementById('f-wp').value.trim(),
     descripcion: document.getElementById('f-desc').value.trim(),
