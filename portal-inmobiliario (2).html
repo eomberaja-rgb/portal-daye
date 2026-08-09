@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dayé Corporation — Operaciones Inmobiliarias</title>
+<meta name="description" content="Dayé Corporation — Operaciones Inmobiliarias. Encontrá tu propiedad ideal en Argentina.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  .leaflet-container { background: #e8e6e0; }
+</style>
+<script>
+(function() {
+  var css = document.createElement('link');
+  css.rel = 'stylesheet';
+  css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  document.head.appendChild(css);
+  var script = document.createElement('script');
+  script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  script.onerror = function() { window._leafletFailed = true; };
+  document.head.appendChild(script);
+})();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1b2a4a; --ink-soft: #3a4a6a; --ink-muted: #7a8aaa;
+    --cream: #f5f6f9; --white: #ffffff;
+    --gold: #1b2a4a; --gold-light: #dce3f0;
+    --accent: #c9a84c; --accent-light: #f0e4c0;
+    --green: #2d6a4f;
+    --red: #c0392b; --red-light: #fde8e6;
+    --border: #dde2ec;
+    --shadow: 0 2px 12px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.16);
+    --radius: 12px;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  nav {
+    background: var(--white); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; align-items: center;
+    justify-content: space-between; height: 64px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--ink); cursor: pointer; display: flex; flex-direction: column; line-height: 1.1; }
+  .nav-logo .brand-name { font-size: 20px; letter-spacing: -0.3px; }
+  .nav-logo .brand-sub { font-size: 10px; font-family: 'Inter', sans-serif; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-muted); }
+  .nav-logo span { color: var(--accent); }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px;
+    font-weight: 500; cursor: pointer; border: none;
+    transition: all 0.15s; font-family: 'Inter', sans-serif; text-decoration: none;
+  }
+  .btn-ghost { background: transparent; color: var(--ink-soft); }
+  .btn-ghost:hover { background: var(--cream); }
+  .btn-primary { background: var(--ink); color: white; }
+  .btn-primary:hover { background: #2a2a4a; }
+  .btn-gold { background: var(--accent); color: white; }
+  .btn-gold:hover { background: #b8963e; }
+  .btn-outline { background: white; color: var(--ink); border: 1.5px solid var(--border); }
+  .btn-outline:hover { border-color: var(--ink); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { background: #a93226; }
+  .btn-green { background: #25D366; color: white; font-size: 14px; padding: 10px 20px; border-radius: 8px; }
+  .btn-green:hover { background: #1ebe5a; }
+  .btn-lg { padding: 12px 24px; font-size: 15px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* HERO */
+  .hero {
+    background: var(--ink); color: white;
+    padding: 56px 24px 64px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 60% 0%, rgba(201,168,76,0.18) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(32px,5vw,52px); line-height: 1.1; margin-bottom: 12px; letter-spacing: -1px; }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero p { color: rgba(255,255,255,0.6); font-size: 15px; max-width: 440px; margin: 0 auto 32px; line-height: 1.6; }
+
+  .search-bar {
+    background: white; border-radius: 14px; padding: 8px;
+    display: flex; gap: 6px; max-width: 720px; margin: 0 auto;
+    box-shadow: var(--shadow-lg); flex-wrap: wrap;
+  }
+  .search-bar select, .search-bar input {
+    border: none; outline: none; padding: 10px 12px;
+    font-size: 14px; font-family: 'Inter', sans-serif;
+    color: var(--ink); background: transparent; flex: 1; min-width: 110px;
+  }
+  .search-bar .divider { width: 1px; background: var(--border); align-self: stretch; margin: 6px 0; }
+
+  /* FILTROS AVANZADOS */
+  .filters-panel { background: white; border-bottom: 1px solid var(--border); padding: 14px 24px; }
+  .filters-inner { max-width: 1280px; margin: 0 auto; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .filter-group { display: flex; flex-direction: column; gap: 3px; }
+  .filter-group label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-muted); }
+  .filter-group select, .filter-group input {
+    border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 7px 10px; font-size: 13px; font-family: 'Inter', sans-serif;
+    color: var(--ink); outline: none; background: white; min-width: 110px; cursor: pointer;
+  }
+  .filter-group select:focus, .filter-group input:focus { border-color: var(--ink); }
+  .filters-sort { margin-left: auto; display: flex; align-items: flex-end; gap: 8px; }
+  .active-filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 24px 0; max-width: 1280px; margin: 0 auto; }
+  .filter-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-light); color: var(--ink); border: 1px solid var(--accent);
+    border-radius: 20px; font-size: 12px; font-weight: 500; padding: 3px 10px; cursor: pointer;
+  }
+
+  /* STATS */
+  .stats-bar {
+    background: white; border-bottom: 1px solid var(--border);
+    padding: 14px 24px; display: flex; gap: 28px;
+    justify-content: center; font-size: 13px; color: var(--ink-soft); flex-wrap: wrap;
+  }
+  .stats-bar strong { color: var(--ink); font-size: 18px; font-family: 'DM Serif Display', serif; display: block; }
+
+  /* LISTING */
+  .listing-container { max-width: 1280px; margin: 0 auto; padding: 28px 24px; }
+  .listing-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .listing-header h2 { font-family: 'DM Serif Display', serif; font-size: 22px; }
+  .view-toggle { display: flex; gap: 4px; background: var(--border); padding: 4px; border-radius: 8px; }
+  .view-toggle button { background: none; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: var(--ink-soft); font-size: 16px; }
+  .view-toggle button.active { background: white; color: var(--ink); }
+
+  .properties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .properties-grid.list-view { grid-template-columns: 1fr; }
+  .properties-grid.list-view .property-card { display: grid; grid-template-columns: 260px 1fr; }
+  .properties-grid.list-view .card-img { height: 100%; min-height: 160px; }
+
+  .property-card {
+    background: white; border-radius: var(--radius); overflow: hidden;
+    box-shadow: var(--shadow); cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s; border: 1px solid var(--border);
+  }
+  .property-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .card-img {
+    width: 100%; height: 200px; background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-muted); font-size: 32px;
+    position: relative; overflow: hidden; flex-shrink: 0;
+  }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-badge {
+    position: absolute; top: 12px; left: 12px;
+    color: white; font-size: 10px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px;
+  }
+  .card-badge.venta { background: var(--gold); }
+  .card-badge.alquiler { background: var(--green); }
+  .card-body { padding: 16px; }
+  .card-price { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ink); margin-bottom: 4px; }
+  .card-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .card-location { font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; }
+  .card-features { display: flex; gap: 12px; font-size: 12px; color: var(--ink-soft); border-top: 1px solid var(--border); padding-top: 12px; flex-wrap: wrap; }
+
+  /* DETAIL */
+  .detail-container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .detail-back { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 14px; cursor: pointer; margin-bottom: 24px; background: none; border: none; font-family: 'Inter', sans-serif; }
+  .detail-back:hover { color: var(--ink); }
+  .detail-gallery { border-radius: var(--radius); overflow: hidden; margin-bottom: 32px; background: var(--border); min-height: 300px; display: flex; align-items: center; justify-content: center; font-size: 64px; color: var(--ink-muted); }
+  .detail-gallery img { width: 100%; max-height: 440px; object-fit: cover; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 320px; gap: 32px; }
+  @media(max-width:768px){ .detail-grid { grid-template-columns: 1fr; } }
+  .detail-price { font-family: 'DM Serif Display', serif; font-size: 34px; margin-bottom: 8px; }
+  .detail-title { font-size: 19px; font-weight: 500; margin-bottom: 8px; }
+  .detail-location { color: var(--ink-muted); font-size: 14px; margin-bottom: 20px; }
+  .detail-features { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; padding: 18px; background: var(--cream); border-radius: var(--radius); }
+  .feature-item .value { font-size: 20px; font-weight: 600; font-family: 'DM Serif Display', serif; }
+  .feature-item .label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .detail-description { font-size: 15px; line-height: 1.7; color: var(--ink-soft); margin-bottom: 24px; }
+  .detail-map { height: 240px; border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border); }
+  .contact-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; position: sticky; top: 80px; }
+  .contact-card h3 { font-family: 'DM Serif Display', serif; font-size: 19px; margin-bottom: 6px; }
+  .contact-card p { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .contact-card .price-recap { background: var(--cream); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: var(--ink-soft); }
+  .contact-card .price-recap strong { display: block; font-size: 20px; font-family: 'DM Serif Display', serif; color: var(--ink); }
+
+  /* MAP */
+  #map-view-container { height: calc(100vh - 64px); }
+
+  /* LOADING SCREEN */
+  .loading-screen {
+    position: fixed; inset: 0; background: var(--ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999; color: white; gap: 16px;
+  }
+  .loading-screen .logo { font-family: 'DM Serif Display', serif; font-size: 32px; }
+  .loading-screen .logo span { color: var(--accent); }
+  .spinner {
+    width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.2);
+    border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-screen p { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+  /* ADMIN */
+  .admin-layout { display: flex; min-height: calc(100vh - 64px); }
+  .admin-sidebar { width: 220px; background: var(--ink); color: white; padding: 24px 0; flex-shrink: 0; }
+  .admin-sidebar .logo { font-family: 'DM Serif Display', serif; font-size: 18px; padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; color: var(--accent); }
+  .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.15s; }
+  .sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.1); color: white; }
+  .admin-main { flex: 1; padding: 28px; overflow-y: auto; }
+  .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+  .admin-header h1 { font-family: 'DM Serif Display', serif; font-size: 26px; }
+  .admin-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .admin-stat { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; text-align: center; }
+  .admin-stat .n { font-family: 'DM Serif Display', serif; font-size: 34px; color: var(--ink); }
+  .admin-stat .l { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .admin-table-wrap { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .admin-table th { background: var(--cream); padding: 11px 14px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-soft); border-bottom: 1px solid var(--border); }
+  .admin-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .admin-table tr:hover td { background: var(--cream); }
+  .status-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; }
+  .status-dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.active::before { background: #2d6a4f; }
+  .status-dot.inactive::before { background: var(--ink-muted); }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.6); z-index: 500; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 16px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; padding: 28px; box-shadow: 0 20px 60px rgba(26,26,46,0.25); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+  .modal-header h2 { font-family: 'DM Serif Display', serif; font-size: 22px; }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--ink-muted); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-full { grid-column: 1/-1; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select, .form-group textarea { border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--ink); outline: none; transition: border-color 0.15s; background: white; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--ink); }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+  /* LOGIN */
+  .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--ink); padding: 24px; }
+  .login-box { background: white; border-radius: 20px; padding: 44px 36px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .login-box .logo { font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: 6px; }
+  .login-box .logo span { color: var(--gold); }
+  .login-box > p { color: var(--ink-muted); font-size: 14px; margin-bottom: 28px; }
+  .login-box .form-group { text-align: left; margin-bottom: 14px; }
+  .login-error { background: var(--red-light); color: var(--red); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; display: none; }
+
+  .empty-state { text-align: center; padding: 72px 24px; color: var(--ink-muted); grid-column: 1/-1; }
+  .empty-state .icon { font-size: 44px; margin-bottom: 14px; }
+  .empty-state h3 { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--ink); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; margin-bottom: 20px; }
+
+  .tag { display: inline-flex; align-items: center; gap: 4px; background: var(--cream); color: var(--ink-soft); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 500; padding: 3px 10px; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; z-index: 1000; transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  @media(max-width:600px){
+    .form-grid { grid-template-columns: 1fr; }
+    .admin-sidebar { display: none; }
+    .properties-grid.list-view .property-card { grid-template-columns: 1fr; }
+    .properties-grid.list-view .card-img { height: 180px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="logo">Dayé<span>.</span></div>
+  <div class="spinner"></div>
+  <p>Cargando propiedades...</p>
+</div>
+
+<!-- NAV -->
+<nav id="main-nav" style="display:none">
+  <div class="nav-logo" onclick="showView('portal')">
+    <span class="brand-name">Dayé <span>Corporation</span></span>
+    <span class="brand-sub">Operaciones Inmobiliarias</span>
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-ghost" onclick="showView('portal')">🏠 Propiedades</button>
+    <button class="btn btn-ghost" onclick="showView('map')">🗺 Mapa</button>
+    <button class="btn btn-primary" id="nav-admin-btn" onclick="showView('login')">Admin</button>
+  </div>
+</nav>
+
+<!-- ══ PORTAL ══ -->
+<div id="view-portal" class="view">
+  <div class="hero">
+    <div class="hero-eyebrow">Dayé Corporation · Operaciones Inmobiliarias</div>
+    <h1>Tu próxima <em>propiedad</em><br>te está esperando</h1>
+    <p>Propiedades en venta y alquiler. Información completa y contacto directo con nuestros asesores.</p>
+    <div class="search-bar">
+      <select id="filter-tipo" onchange="applyFilters()">
+        <option value="">Todas las operaciones</option>
+        <option value="venta">Venta</option>
+        <option value="alquiler">Alquiler</option>
+      </select>
+      <div class="divider"></div>
+      <select id="filter-cat" onchange="applyFilters()">
+        <option value="">Todas las categorías</option>
+        <option>Casa</option><option>Departamento</option><option>PH</option>
+        <option>Oficina</option><option>Local</option><option>Terreno</option>
+      </select>
+      <div class="divider"></div>
+      <input type="text" id="filter-zona" placeholder="Barrio o zona..." oninput="applyFilters()">
+      <button class="btn btn-primary" onclick="applyFilters()">Buscar</button>
+    </div>
+  </div>
+
+  <div class="filters-panel">
+    <div class="filters-inner">
+      <div class="filter-group">
+        <label>Precio mín. (USD)</label>
+        <input type="number" id="filter-pmin" placeholder="0" oninput="applyFilters()" style="width:100px">
+      </div>
+      <div class="filter-group">
+        <label>Precio máx. (USD)</label>
+        <input type="number" id="filter-pmax" placeholder="Sin límite" oninput="applyFilters()" style="width:110px">
+      </div>
+      <div class="filter-group">
+        <label>Ambientes mín.</label>
+        <select id="filter-amb" onchange="applyFilters()" style="width:110px">
+          <option value="">Cualquiera</option>
+          <option value="1">1+</option><option value="2">2+</option>
+          <option value="3">3+</option><option value="4">4+</option><option value="5">5+</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Dormitorios mín.</label>
+        <select id="filter-dorm" onchange="applyFilters()" style="width:110px">
+          <option value="">Cualquiera</option>
+          <option value="1">1+</option><option value="2">2+</option>
+          <option value="3">3+</option><option value="4">4+</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Sup. mín. (m²)</label>
+        <input type="number" id="filter-sup" placeholder="0" oninput="applyFilters()" style="width:90px">
+      </div>
+      <div class="filter-group">
+        <label>Barrio</label>
+        <select id="filter-barrio" onchange="applyFilters()" style="min-width:130px">
+          <option value="">Todos los barrios</option>
+        </select>
+      </div>
+      <div class="filters-sort">
+        <div class="filter-group">
+          <label>Ordenar por</label>
+          <select id="filter-orden" onchange="applyFilters()" style="min-width:160px">
+            <option value="reciente">Más reciente</option>
+            <option value="precio-asc">Precio: menor a mayor</option>
+            <option value="precio-desc">Precio: mayor a menor</option>
+            <option value="sup-desc">Mayor superficie</option>
+          </select>
+        </div>
+        <button class="btn btn-outline" onclick="clearFilters()" style="height:36px">✕ Limpiar</button>
+      </div>
+    </div>
+    <div class="active-filters" id="active-filters"></div>
+  </div>
+
+  <div class="stats-bar">
+    <div><strong id="stat-total">0</strong>propiedades</div>
+    <div><strong id="stat-venta">0</strong>en venta</div>
+    <div><strong id="stat-alquiler">0</strong>en alquiler</div>
+  </div>
+
+  <div class="listing-container">
+    <div class="listing-header">
+      <h2 id="listing-title">Todas las propiedades</h2>
+      <div class="view-toggle">
+        <button class="active" onclick="setGridView('grid',this)">⊞</button>
+        <button onclick="setGridView('list',this)">☰</button>
+      </div>
+    </div>
+    <div class="properties-grid" id="properties-grid"></div>
+  </div>
+</div>
+
+<!-- ══ DETAIL ══ -->
+<div id="view-detail" class="view">
+  <div class="detail-container">
+    <button class="detail-back" onclick="showView('portal')">← Volver al listado</button>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<!-- ══ MAPA ══ -->
+<div id="view-map" class="view">
+  <div id="map-view-container"></div>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div id="view-login" class="view">
+  <div class="login-container">
+    <div class="login-box">
+      <div class="logo" style="font-size:22px">Dayé <span style="color:var(--accent)">Corporation</span></div>
+      <p>Panel de administración</p>
+      <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
+      <div class="form-group"><label>Usuario</label><input type="text" id="login-user" placeholder="Usuario"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:10px" id="login-btn" onclick="doLogin()">Ingresar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div id="view-admin" class="view">
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <div class="logo">Dayé Corp.</div>
+      <div class="sidebar-link active" onclick="adminTab('propiedades',this)">🏠 &nbsp;Propiedades</div>
+      <div class="sidebar-link" onclick="adminTab('estadisticas',this)">📊 &nbsp;Estadísticas</div>
+      <div class="sidebar-link" onclick="showView('portal')" style="margin-top:32px;border-top:1px solid rgba(255,255,255,0.1)">👁 &nbsp;Ver portal</div>
+      <div class="sidebar-link" onclick="doLogout()" style="color:rgba(255,100,100,0.8)">↩ &nbsp;Salir</div>
+    </div>
+    <div class="admin-main">
+      <div id="admin-tab-propiedades">
+        <div class="admin-header">
+          <h1>Propiedades</h1>
+          <button class="btn btn-gold" onclick="openModal()">+ Nueva propiedad</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr>
+              <th>Propiedad</th><th>Tipo</th><th>Precio</th><th>Zona</th><th>Estado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="admin-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="admin-tab-estadisticas" style="display:none">
+        <div class="admin-header"><h1>Estadísticas</h1></div>
+        <div class="admin-stats" id="admin-stats-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Nueva propiedad</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group form-full"><label>Título</label><input id="f-titulo" placeholder="Ej: Casa con jardín en Palermo"></div>
+      <div class="form-group">
+        <label>Categoría</label>
+        <select id="f-categoria"><option>Casa</option><option>Departamento</option><option>PH</option><option>Oficina</option><option>Local</option><option>Terreno</option></select>
+      </div>
+      <div class="form-group">
+        <label>Operación</label>
+        <select id="f-operacion"><option value="venta">Venta</option><option value="alquiler">Alquiler</option></select>
+      </div>
+      <div class="form-group"><label>Precio (USD)</label><input id="f-precio" type="number" placeholder="180000"></div>
+      <div class="form-group"><label>Barrio / Zona</label><input id="f-zona" placeholder="Ej: Palermo, CABA"></div>
+      <div class="form-group form-full">
+        <label>Dirección completa</label>
+        <div style="display:flex;gap:8px">
+          <input id="f-direccion" placeholder="Ej: Av. Santa Fe 3200, Buenos Aires" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();geocodeAddress()}">
+          <button type="button" class="btn btn-primary" onclick="geocodeAddress()" id="geo-btn" style="white-space:nowrap;flex-shrink:0">📍 Ubicar</button>
+        </div>
+        <div id="geo-status" style="font-size:12px;margin-top:6px;min-height:18px"></div>
+      </div>
+      <div id="geo-map-preview" class="form-full" style="display:none">
+        <div id="geo-map" style="height:180px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:4px"></div>
+        <p style="font-size:11px;color:var(--ink-muted)">¿No es correcta? Editá la dirección y volvé a hacer click en Ubicar.</p>
+      </div>
+      <input type="hidden" id="f-lat">
+      <input type="hidden" id="f-lng">
+      <div class="form-group"><label>Superficie (m²)</label><input id="f-sup" type="number" placeholder="80"></div>
+      <div class="form-group"><label>Ambientes</label><input id="f-amb" type="number" placeholder="3"></div>
+      <div class="form-group"><label>Dormitorios</label><input id="f-dorm" type="number" placeholder="2"></div>
+      <div class="form-group"><label>Baños</label><input id="f-ban" type="number" placeholder="1"></div>
+      <div class="form-group form-full">
+        <label>Fotos de la propiedad</label>
+        <div id="photo-drop-zone" onclick="document.getElementById('f-fotos').click()"
+          style="border:2px dashed var(--border);border-radius:10px;padding:28px;text-align:center;cursor:pointer;background:var(--cream);transition:all 0.2s"
+          ondragover="photoDragOver(event)" ondragleave="photoDragLeave(event)" ondrop="photoDrop(event)">
+          <div style="font-size:28px;margin-bottom:8px">📷</div>
+          <div style="font-size:14px;font-weight:500">Hacé click o arrastrá fotos acá</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-top:4px">JPG, PNG · Podés subir varias a la vez</div>
+        </div>
+        <input type="file" id="f-fotos" accept="image/*" multiple style="display:none" onchange="handlePhotoUpload(event)">
+        <div id="photo-previews" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px"></div>
+        <div id="upload-progress" style="display:none;margin-top:8px">
+          <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+            <div id="upload-bar" style="background:var(--gold);height:100%;width:0%;transition:width 0.3s"></div>
+          </div>
+          <p id="upload-label" style="font-size:12px;color:var(--ink-muted);margin-top:4px">Subiendo fotos...</p>
+        </div>
+      </div>
+      <div class="form-group form-full"><label>WhatsApp (número sin +)</label><input id="f-wp" placeholder="5491155551234"></div>
+      <div class="form-group form-full"><label>Descripción</label><textarea id="f-desc" placeholder="Describí la propiedad con todos los detalles..."></textarea></div>
+      <div class="form-group form-full">
+        <label>Estado</label>
+        <select id="f-estado">
+          <option value="activa">Activa (visible en portal)</option>
+          <option value="inactiva">Inactiva (oculta)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-gold" id="save-btn" onclick="saveProperty()">Guardar propiedad</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer id="main-footer" style="background:var(--ink);color:rgba(255,255,255,0.7);padding:40px 24px;text-align:center;display:none">
+  <div style="max-width:900px;margin:0 auto">
+    <div style="font-family:'DM Serif Display',serif;font-size:22px;color:white;margin-bottom:6px">
+      Dayé <span style="color:var(--accent)">Corporation</span>
+    </div>
+    <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px;color:rgba(255,255,255,0.4)">Operaciones Inmobiliarias</div>
+    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;font-size:14px">
+      <a href="https://wa.me/5491131146870" target="_blank" style="color:rgba(255,255,255,0.7);text-decoration:none">💬 11 3114-6870</a>
+      <a href="https://wa.me/5491130794180" target="_blank" style="color:rgba(255,255,255,0.7);text-decoration:none">💬 11 3079-4180</a>
+      <a href="https://wa.me/5491132392353" target="_blank" style="color:rgba(255,255,255,0.7);text-decoration:none">💬 11 3239-2353</a>
+    </div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.3)">© 2025 Dayé Corporation · Todos los derechos reservados</div>
+  </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════
+//  SUPABASE CONFIG
+// ══════════════════════════════════════════════
+const SUPABASE_URL = 'https://sdtstknwqkdingczxsbp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_wDo5JWu5BVtTCZYNnTvUOg_rk5X8tmi';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let properties = [];
+let filteredProps = [];
+let editingId = null;
+let loggedIn = false;
+let listMap = null;
+let detailMap = null;
+let geoMapPreview = null;
+let pendingPhotos = []; // { file, preview } para fotos nuevas
+let existingPhotoUrls = []; // URLs ya subidas (al editar)
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+window.addEventListener('error', function(e) {
+  if (e.message && e.message.includes('L is not defined')) {
+    window._leafletFailed = true; e.preventDefault();
+  }
+});
+
+async function init() {
+  await loadProperties();
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('main-nav').style.display = 'flex';
+  showView('portal');
+}
+
+// ══════════════════════════════════════════════
+//  SUPABASE — CRUD
+// ══════════════════════════════════════════════
+async function loadProperties() {
+  try {
+    const { data, error } = await sb.from('propiedades').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    properties = data || [];
+  } catch(e) {
+    console.error('Error cargando propiedades:', e);
+    properties = [];
+  }
+}
+
+async function insertProperty(data) {
+  const { data: row, error } = await sb.from('propiedades').insert([data]).select().single();
+  if (error) throw error;
+  return row;
+}
+
+async function updateProperty(id, data) {
+  const { error } = await sb.from('propiedades').update(data).eq('id', id);
+  if (error) throw error;
+}
+
+async function deletePropertyDB(id) {
+  const { error } = await sb.from('propiedades').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ══════════════════════════════════════════════
+//  SUPABASE — STORAGE (fotos)
+// ══════════════════════════════════════════════
+async function uploadPhotos(files, propId) {
+  const urls = [];
+  const total = files.length;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const ext = file.name.split('.').pop();
+    const path = `${propId}/${Date.now()}_${i}.${ext}`;
+
+    const { error } = await sb.storage.from('fotos').upload(path, file, { upsert: true });
+    if (error) { console.error('Error subiendo foto:', error); continue; }
+
+    const { data: urlData } = sb.storage.from('fotos').getPublicUrl(path);
+    urls.push(urlData.publicUrl);
+
+    // Actualizar barra de progreso
+    const pct = Math.round(((i + 1) / total) * 100);
+    document.getElementById('upload-bar').style.width = pct + '%';
+    document.getElementById('upload-label').textContent = `Subiendo foto ${i+1} de ${total}...`;
+  }
+
+  return urls;
+}
+
+async function deletePhotoFromStorage(url) {
+  try {
+    const path = url.split('/fotos/')[1];
+    if (path) await sb.storage.from('fotos').remove([path]);
+  } catch(e) { console.error('Error borrando foto:', e); }
+}
+
+// ══════════════════════════════════════════════
+//  VIEWS
+// ══════════════════════════════════════════════
+const DEFAULT_WP = '5491131146870'; // Dayé Corporation WhatsApp principal
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  const isPublic = ['portal','detail','map'].includes(name);
+  document.getElementById('main-nav').style.display = (name === 'login') ? 'none' : 'flex';
+  document.getElementById('main-footer').style.display = isPublic ? 'block' : 'none';
+  if (name === 'portal') { populateBarrios(); renderPortal(); }
+  if (name === 'map') renderMapView();
+  if (name === 'admin') { if (!loggedIn) { showView('login'); return; } renderAdmin(); }
+}
+
+// ══════════════════════════════════════════════
+//  PORTAL
+// ══════════════════════════════════════════════
+function renderPortal() {
+  filteredProps = properties.filter(p => p.estado === 'activa').slice();
+  renderCards();
+  updateStats();
+}
+
+function applyFilters() {
+  const tipo   = document.getElementById('filter-tipo').value;
+  const cat    = document.getElementById('filter-cat').value;
+  const zona   = document.getElementById('filter-zona').value.toLowerCase().trim();
+  const barrio = document.getElementById('filter-barrio').value;
+  const pmin   = parseFloat(document.getElementById('filter-pmin').value) || 0;
+  const pmax   = parseFloat(document.getElementById('filter-pmax').value) || Infinity;
+  const amb    = parseInt(document.getElementById('filter-amb').value) || 0;
+  const dorm   = parseInt(document.getElementById('filter-dorm').value) || 0;
+  const sup    = parseFloat(document.getElementById('filter-sup').value) || 0;
+  const orden  = document.getElementById('filter-orden').value;
+
+  filteredProps = properties.filter(p => {
+    if (p.estado !== 'activa') return false;
+    if (tipo && p.operacion !== tipo) return false;
+    if (cat && p.categoria !== cat) return false;
+    if (zona && !p.zona?.toLowerCase().includes(zona) && !p.titulo?.toLowerCase().includes(zona)) return false;
+    if (barrio && p.zona !== barrio) return false;
+    if (p.precio < pmin || p.precio > pmax) return false;
+    if (amb && (p.amb || 0) < amb) return false;
+    if (dorm && (p.dorm || 0) < dorm) return false;
+    if (sup && (p.sup || 0) < sup) return false;
+    return true;
+  });
+
+  if (orden === 'precio-asc') filteredProps.sort((a,b) => a.precio - b.precio);
+  else if (orden === 'precio-desc') filteredProps.sort((a,b) => b.precio - a.precio);
+  else if (orden === 'sup-desc') filteredProps.sort((a,b) => (b.sup||0) - (a.sup||0));
+
+  renderCards();
+  renderActiveFilters();
+}
+
+function populateBarrios() {
+  const zonas = [...new Set(properties.filter(p => p.estado === 'activa' && p.zona).map(p => p.zona))].sort();
+  const sel = document.getElementById('filter-barrio');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todos los barrios</option>' + zonas.map(z => `<option value="${z}">${z}</option>`).join('');
+  sel.value = cur;
+}
+
+function renderCards() {
+  const grid = document.getElementById('properties-grid');
+  const count = filteredProps.length;
+  const total = properties.filter(p => p.estado === 'activa').length;
+  document.getElementById('listing-title').textContent =
+    count === total ? `${count} propiedades` :
+    count === 0 ? 'Sin resultados' :
+    count === 1 ? '1 propiedad encontrada' : `${count} propiedades encontradas`;
+
+  if (count === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><h3>Sin resultados</h3><p>Probá ajustando los filtros.</p><button class="btn btn-outline" onclick="clearFilters()">Limpiar filtros</button></div>`;
+    return;
+  }
+
+  grid.innerHTML = filteredProps.map(p => {
+    const thumb = p.fotos && p.fotos.length ? p.fotos[0] : '';
+    return `
+    <div class="property-card" onclick="openDetail(${p.id})">
+      <div class="card-img">
+        ${thumb ? `<img src="${thumb}" alt="${p.titulo}" loading="lazy">` : '🏠'}
+        <div class="card-badge ${p.operacion}">${p.operacion === 'venta' ? 'Venta' : 'Alquiler'}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-price">${formatPrice(p)}</div>
+        <div class="card-title">${p.titulo}</div>
+        <div class="card-location">📍 ${p.zona || ''}</div>
+        <div class="card-features">
+          ${p.sup ? `<span>📐 ${p.sup}m²</span>` : ''}
+          ${p.amb ? `<span>🚪 ${p.amb} amb.</span>` : ''}
+          ${p.dorm ? `<span>🛏 ${p.dorm}</span>` : ''}
+          ${p.ban ? `<span>🚿 ${p.ban}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  const a = properties.filter(p => p.estado === 'activa');
+  document.getElementById('stat-total').textContent = a.length;
+  document.getElementById('stat-venta').textContent = a.filter(p => p.operacion === 'venta').length;
+  document.getElementById('stat-alquiler').textContent = a.filter(p => p.operacion === 'alquiler').length;
+}
+
+function formatPrice(p) {
+  return p.operacion === 'alquiler'
+    ? `USD ${Number(p.precio).toLocaleString()}/mes`
+    : `USD ${Number(p.precio).toLocaleString()}`;
+}
+
+function clearFilters() {
+  ['filter-tipo','filter-cat','filter-barrio','filter-amb','filter-dorm'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('filter-orden').value = 'reciente';
+  ['filter-zona','filter-pmin','filter-pmax','filter-sup'].forEach(id => document.getElementById(id).value = '');
+  applyFilters();
+}
+
+function renderActiveFilters() {
+  const chips = [];
+  const tipo   = document.getElementById('filter-tipo').value;
+  const cat    = document.getElementById('filter-cat').value;
+  const zona   = document.getElementById('filter-zona').value.trim();
+  const barrio = document.getElementById('filter-barrio').value;
+  const pmin   = document.getElementById('filter-pmin').value;
+  const pmax   = document.getElementById('filter-pmax').value;
+  const amb    = document.getElementById('filter-amb').value;
+  const dorm   = document.getElementById('filter-dorm').value;
+  const sup    = document.getElementById('filter-sup').value;
+
+  if (tipo)   chips.push({ label: tipo==='venta'?'🏷 Venta':'🔑 Alquiler', clear: ()=>{document.getElementById('filter-tipo').value='';applyFilters();} });
+  if (cat)    chips.push({ label: '🏠 '+cat, clear: ()=>{document.getElementById('filter-cat').value='';applyFilters();} });
+  if (zona)   chips.push({ label: '📍 '+zona, clear: ()=>{document.getElementById('filter-zona').value='';applyFilters();} });
+  if (barrio) chips.push({ label: '🏘 '+barrio, clear: ()=>{document.getElementById('filter-barrio').value='';applyFilters();} });
+  if (pmin)   chips.push({ label: 'Desde USD '+Number(pmin).toLocaleString(), clear: ()=>{document.getElementById('filter-pmin').value='';applyFilters();} });
+  if (pmax)   chips.push({ label: 'Hasta USD '+Number(pmax).toLocaleString(), clear: ()=>{document.getElementById('filter-pmax').value='';applyFilters();} });
+  if (amb)    chips.push({ label: amb+'+ ambientes', clear: ()=>{document.getElementById('filter-amb').value='';applyFilters();} });
+  if (dorm)   chips.push({ label: dorm+'+ dorm.', clear: ()=>{document.getElementById('filter-dorm').value='';applyFilters();} });
+  if (sup)    chips.push({ label: 'Mín '+sup+'m²', clear: ()=>{document.getElementById('filter-sup').value='';applyFilters();} });
+
+  document.getElementById('active-filters').innerHTML = chips.map((c,i) =>
+    `<span class="filter-chip" onclick="window._chipClears[${i}]()">${c.label} <span style="font-size:14px">×</span></span>`
+  ).join('');
+  window._chipClears = chips.map(c => c.clear);
+}
+
+function setGridView(type, btn) {
+  document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const grid = document.getElementById('properties-grid');
+  type === 'list' ? grid.classList.add('list-view') : grid.classList.remove('list-view');
+}
+
+// ══════════════════════════════════════════════
+//  DETAIL
+// ══════════════════════════════════════════════
+function openDetail(id) {
+  const p = properties.find(x => x.id === id);
+  if (!p) return;
+
+  const fotos = p.fotos && p.fotos.length ? p.fotos : [];
+  const waNum = p.wp || DEFAULT_WP;
+  const waMsg = encodeURIComponent(`Hola, vi la propiedad "${p.titulo}" en el portal de Dayé Corporation y me gustaría más información.`);
+  const waUrl = `https://wa.me/${waNum}?text=${waMsg}`;
+
+  const galleryHTML = fotos.length > 1
+    ? `<div style="height:380px;overflow:hidden;border-radius:var(--radius);margin-bottom:8px;background:var(--border);display:flex;align-items:center;justify-content:center">
+        <img id="gallery-main-img" src="${fotos[0]}" style="width:100%;height:100%;object-fit:cover">
+       </div>
+       <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:24px">
+         ${fotos.map((f,i) => `<img src="${f}" onclick="document.getElementById('gallery-main-img').src='${f}'" style="width:80px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;flex-shrink:0;border:2px solid ${i===0?'var(--gold)':'var(--border)'}">`).join('')}
+       </div>`
+    : `<div class="detail-gallery" style="margin-bottom:32px">
+        ${fotos[0] ? `<img src="${fotos[0]}" alt="${p.titulo}">` : '🏠'}
+       </div>`;
+
+  document.getElementById('detail-content').innerHTML = `
+    ${galleryHTML}
+    <div class="detail-grid">
+      <div>
+        <span class="card-badge ${p.operacion}" style="position:static;display:inline-block;margin-bottom:12px">
+          ${p.operacion==='venta'?'🏷 Venta':'🔑 Alquiler'}
+        </span>
+        <div class="detail-price">${formatPrice(p)}</div>
+        <div class="detail-title">${p.titulo}</div>
+        <div class="detail-location">📍 ${p.zona||''} · ${p.direccion||''}</div>
+        <div class="detail-features">
+          ${p.sup?`<div class="feature-item"><div class="value">${p.sup}</div><div class="label">m² tot.</div></div>`:''}
+          ${p.amb?`<div class="feature-item"><div class="value">${p.amb}</div><div class="label">Ambientes</div></div>`:''}
+          ${p.dorm?`<div class="feature-item"><div class="value">${p.dorm}</div><div class="label">Dormitorios</div></div>`:''}
+          ${p.ban?`<div class="feature-item"><div class="value">${p.ban}</div><div class="label">Baños</div></div>`:''}
+        </div>
+        <p class="detail-description">${p.descripcion||''}</p>
+        ${p.lat&&p.lng?`<div class="detail-map" id="detail-map-container"></div>`:''}
+      </div>
+      <div>
+        <div class="contact-card">
+          <h3>Consultá esta propiedad</h3>
+          <p>Dayé Corporation · Respondemos rápido</p>
+          <div class="price-recap">
+            <strong>${formatPrice(p)}</strong>
+            ${p.categoria||''} · ${p.zona||''}
+          </div>
+          <a href="${waUrl}" target="_blank" class="btn btn-green btn-lg" style="width:100%;justify-content:center;margin-bottom:10px;display:flex;text-decoration:none">
+            💬 Consultar por WhatsApp
+          </a>
+          <p style="font-size:11px;color:var(--ink-muted);text-align:center">Se abre WhatsApp con el mensaje prellenado</p>
+        </div>
+      </div>
+    </div>`;
+
+  showView('detail');
+
+  if (p.lat && p.lng) {
+    setTimeout(() => initMap('detail-map-container', p.lat, p.lng, p.titulo, p.direccion, 15), 300);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  MAPAS
+// ══════════════════════════════════════════════
+function leafletReady() { return typeof L !== 'undefined'; }
+
+function initMap(containerId, lat, lng, titulo, dir, zoom=15) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (leafletReady() && !window._leafletFailed) {
+    try {
+      if (containerId === 'detail-map-container' && detailMap) { detailMap.remove(); detailMap=null; }
+      if (containerId === 'geo-map' && geoMapPreview) { geoMapPreview.remove(); geoMapPreview=null; }
+      const map = L.map(containerId).setView([lat,lng],zoom);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+      L.marker([lat,lng]).addTo(map).bindPopup(`<b>${titulo}</b>${dir?'<br>'+dir:''}`).openPopup();
+      if (containerId === 'detail-map-container') detailMap = map;
+      if (containerId === 'geo-map') geoMapPreview = map;
+      return;
+    } catch(e) {}
+  }
+  el.innerHTML = `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.008},${lat-0.005},${lng+0.008},${lat+0.005}&layer=mapnik&marker=${lat},${lng}" width="100%" height="100%" frameborder="0" style="border:0" loading="lazy"></iframe>`;
+}
+
+function renderMapView() {
+  setTimeout(() => {
+    if (!leafletReady() || window._leafletFailed) { mapFallbackGrid(); return; }
+    try {
+      if (listMap) { listMap.remove(); listMap=null; }
+      listMap = L.map('map-view-container').setView([-34.603,-58.381],12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(listMap);
+      properties.filter(p=>p.estado==='activa'&&p.lat&&p.lng).forEach(p=>{
+        L.marker([p.lat,p.lng]).addTo(listMap).bindPopup(`
+          <div style="font-family:Inter,sans-serif;min-width:200px">
+            <strong style="font-size:13px">${p.titulo}</strong><br>
+            <span style="color:#888;font-size:12px">${p.zona||''}</span><br>
+            <strong style="color:#1a1a2e;font-size:15px;margin:6px 0;display:block">${formatPrice(p)}</strong>
+            <button onclick="openDetailFromMap(${p.id})" style="background:#1a1a2e;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;width:100%">Ver propiedad →</button>
+          </div>`);
+      });
+    } catch(e) { mapFallbackGrid(); }
+  }, 300);
+}
+
+function mapFallbackGrid() {
+  const el = document.getElementById('map-view-container');
+  if (!el) return;
+  const activas = properties.filter(p=>p.estado==='activa'&&p.lat&&p.lng);
+  el.style.cssText = 'overflow-y:auto;padding:24px;background:var(--cream);height:calc(100vh - 64px)';
+  el.innerHTML = `<div style="max-width:900px;margin:0 auto">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:20px">📍 Propiedades en el mapa</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+      ${activas.map(p=>`
+        <div onclick="openDetail(${p.id})" style="background:white;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid var(--border);box-shadow:var(--shadow)">
+          <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${p.lng-0.008},${p.lat-0.005},${p.lng+0.008},${p.lat+0.005}&layer=mapnik&marker=${p.lat},${p.lng}"
+            width="100%" height="140" frameborder="0" style="display:block" loading="lazy"></iframe>
+          <div style="padding:12px">
+            <div style="font-weight:600;font-size:13px;margin-bottom:2px">${p.titulo}</div>
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px">📍 ${p.zona||''}</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:18px">${formatPrice(p)}</div>
+          </div>
+        </div>`).join('')}
+    </div></div>`;
+}
+
+window.openDetailFromMap = id => openDetail(id);
+
+// ══════════════════════════════════════════════
+//  LOGIN SIMPLE
+// ══════════════════════════════════════════════
+const ADMIN_USER = 'Daye';
+const ADMIN_PASS = 'Portal1234';
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err  = document.getElementById('login-error');
+
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    loggedIn = true;
+    err.style.display = 'none';
+    sessionStorage.setItem('daye_admin', '1');
+    document.getElementById('nav-admin-btn').textContent = 'Admin ✓';
+    showView('admin');
+  } else {
+    err.style.display = 'block';
+    err.textContent = 'Usuario o contraseña incorrectos';
+  }
+}
+
+function doLogout() {
+  loggedIn = false;
+  sessionStorage.removeItem('daye_admin');
+  document.getElementById('nav-admin-btn').textContent = 'Admin';
+  showView('portal');
+}
+
+// Mantener sesión mientras la pestaña esté abierta
+if (sessionStorage.getItem('daye_admin')) {
+  loggedIn = true;
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN
+// ══════════════════════════════════════════════
+function adminTab(tab, el) {
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('admin-tab-propiedades').style.display = tab==='propiedades'?'block':'none';
+  document.getElementById('admin-tab-estadisticas').style.display = tab==='estadisticas'?'block':'none';
+  if (tab==='estadisticas') renderStats();
+}
+
+function renderAdmin() {
+  document.getElementById('admin-table-body').innerHTML = properties.map(p => `
+    <tr>
+      <td>
+        <strong style="font-size:13px">${p.titulo}</strong><br>
+        <span style="color:var(--ink-muted);font-size:11px">${p.categoria||''} · ${p.zona||''}</span>
+      </td>
+      <td><span class="tag">${p.operacion==='venta'?'🏷 Venta':'🔑 Alq.'}</span></td>
+      <td><strong>${formatPrice(p)}</strong></td>
+      <td style="font-size:12px;color:var(--ink-soft)">${p.zona||''}</td>
+      <td><span class="status-dot ${p.estado==='activa'?'active':'inactive'}">${p.estado==='activa'?'Activa':'Inactiva'}</span></td>
+      <td>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" style="padding:5px 10px;font-size:12px" onclick="editProperty(${p.id})">✏ Editar</button>
+          <button class="btn btn-danger" style="padding:5px 10px;font-size:12px" onclick="deleteProperty(${p.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function renderStats() {
+  const a = properties.filter(p => p.estado==='activa');
+  const ventaProps = a.filter(p => p.operacion==='venta');
+  document.getElementById('admin-stats-grid').innerHTML = `
+    <div class="admin-stat"><div class="n">${properties.length}</div><div class="l">Total</div></div>
+    <div class="admin-stat"><div class="n">${a.length}</div><div class="l">Activas</div></div>
+    <div class="admin-stat"><div class="n">${properties.filter(p=>p.operacion==='venta').length}</div><div class="l">En venta</div></div>
+    <div class="admin-stat"><div class="n">${properties.filter(p=>p.operacion==='alquiler').length}</div><div class="l">En alquiler</div></div>
+    <div class="admin-stat"><div class="n">${properties.filter(p=>p.categoria==='Casa').length}</div><div class="l">Casas</div></div>
+    <div class="admin-stat"><div class="n">${properties.filter(p=>p.categoria==='Departamento').length}</div><div class="l">Deptos</div></div>
+    <div class="admin-stat"><div class="n">USD ${ventaProps.length ? Math.round(ventaProps.reduce((s,p)=>s+Number(p.precio),0)/ventaProps.length).toLocaleString() : 0}</div><div class="l">Precio prom. venta</div></div>
+    <div class="admin-stat"><div class="n">${a.length ? Math.round(a.reduce((s,p)=>s+(p.sup||0),0)/a.length) : 0}m²</div><div class="l">Sup. promedio</div></div>`;
+}
+
+// ══════════════════════════════════════════════
+//  GEOCODING
+// ══════════════════════════════════════════════
+async function geocodeAddress() {
+  const dir = document.getElementById('f-direccion').value.trim();
+  if (!dir) { setGeoStatus('⚠ Escribí una dirección primero', 'warn'); return; }
+  const btn = document.getElementById('geo-btn');
+  btn.textContent = '⏳...'; btn.disabled = true;
+  setGeoStatus('Buscando ubicación...', 'info');
+  try {
+    const q = encodeURIComponent(dir + ', Argentina');
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=ar`, {
+      headers: { 'Accept-Language': 'es', 'User-Agent': 'PropAR/1.0' }
+    });
+    const data = await res.json();
+    if (!data.length) {
+      setGeoStatus('❌ No encontramos esa dirección. Probá: "Av. Santa Fe 3200, Buenos Aires"', 'error');
+      btn.textContent = '📍 Ubicar'; btn.disabled = false; return;
+    }
+    const { lat, lon } = data[0];
+    document.getElementById('f-lat').value = lat;
+    document.getElementById('f-lng').value = lon;
+    setGeoStatus('✅ Ubicación encontrada — verificá en el mapa', 'ok');
+    document.getElementById('geo-map-preview').style.display = 'block';
+    setTimeout(() => initMap('geo-map', parseFloat(lat), parseFloat(lon), dir, '', 16), 100);
+  } catch(e) {
+    setGeoStatus('❌ Error de conexión. Intentá de nuevo.', 'error');
+  }
+  btn.textContent = '📍 Ubicar'; btn.disabled = false;
+}
+
+function setGeoStatus(msg, type) {
+  const el = document.getElementById('geo-status');
+  const colors = { ok:'#2d6a4f', error:'#c0392b', warn:'#b8963e', info:'#4a4a6a' };
+  el.style.color = colors[type]||'#4a4a6a';
+  el.textContent = msg;
+}
+
+// ══════════════════════════════════════════════
+//  FOTOS
+// ══════════════════════════════════════════════
+function handlePhotoUpload(e) { processPhotoFiles(Array.from(e.target.files)); }
+function photoDragOver(e) {
+  e.preventDefault();
+  const dz = document.getElementById('photo-drop-zone');
+  dz.style.borderColor='var(--gold)'; dz.style.background='var(--gold-light)';
+}
+function photoDragLeave(e) {
+  const dz = document.getElementById('photo-drop-zone');
+  dz.style.borderColor='var(--border)'; dz.style.background='var(--cream)';
+}
+function photoDrop(e) {
+  e.preventDefault(); photoDragLeave(e);
+  processPhotoFiles(Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')));
+}
+function processPhotoFiles(files) {
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      pendingPhotos.push({ file, preview: e.target.result });
+      renderPhotoPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function renderPhotoPreviews() {
+  const allPreviews = [
+    ...existingPhotoUrls.map((url, i) => ({ src: url, isExisting: true, idx: i })),
+    ...pendingPhotos.map((p, i) => ({ src: p.preview, isExisting: false, idx: i }))
+  ];
+  const container = document.getElementById('photo-previews');
+  container.innerHTML = allPreviews.map((item, i) => `
+    <div style="position:relative;flex-shrink:0">
+      <img src="${item.src}" style="width:88px;height:70px;object-fit:cover;border-radius:8px;border:2px solid ${i===0?'var(--gold)':'var(--border)'}">
+      ${i===0?'<span style="position:absolute;bottom:4px;left:4px;background:var(--gold);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px">PORTADA</span>':''}
+      <button onclick="removePhoto(${item.isExisting?'true':'false'},${item.idx})" style="position:absolute;top:-6px;right:-6px;background:var(--red);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+    </div>`).join('');
+
+  const dz = document.getElementById('photo-drop-zone');
+  if (allPreviews.length > 0) {
+    dz.innerHTML='<div style="font-size:13px;color:var(--ink-soft)">+ Agregar más fotos</div>';
+    dz.style.padding='14px';
+  } else {
+    dz.innerHTML='<div style="font-size:28px;margin-bottom:8px">📷</div><div style="font-size:14px;font-weight:500">Hacé click o arrastrá fotos acá</div><div style="font-size:12px;color:var(--ink-muted);margin-top:4px">JPG, PNG · Podés subir varias a la vez</div>';
+    dz.style.padding='28px';
+  }
+}
+
+function removePhoto(isExisting, idx) {
+  if (isExisting === true || isExisting === 'true') {
+    existingPhotoUrls.splice(idx, 1);
+  } else {
+    pendingPhotos.splice(idx, 1);
+  }
+  renderPhotoPreviews();
+}
+
+// ══════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════
+function openModal(id=null) {
+  editingId = id;
+  pendingPhotos = [];
+  existingPhotoUrls = [];
+  if (geoMapPreview) { geoMapPreview.remove(); geoMapPreview=null; }
+  document.getElementById('geo-map-preview').style.display='none';
+  document.getElementById('geo-status').textContent='';
+  document.getElementById('upload-progress').style.display='none';
+  document.getElementById('upload-bar').style.width='0%';
+  document.getElementById('modal-title').textContent = id ? 'Editar propiedad' : 'Nueva propiedad';
+
+  if (id) {
+    const p = properties.find(x => x.id === id);
+    document.getElementById('f-titulo').value    = p.titulo||'';
+    document.getElementById('f-categoria').value = p.categoria||'Casa';
+    document.getElementById('f-operacion').value = p.operacion||'venta';
+    document.getElementById('f-precio').value    = p.precio||'';
+    document.getElementById('f-zona').value      = p.zona||'';
+    document.getElementById('f-direccion').value = p.direccion||'';
+    document.getElementById('f-sup').value       = p.sup||'';
+    document.getElementById('f-amb').value       = p.amb||'';
+    document.getElementById('f-dorm').value      = p.dorm||'';
+    document.getElementById('f-ban').value       = p.ban||'';
+    document.getElementById('f-lat').value       = p.lat||'';
+    document.getElementById('f-lng').value       = p.lng||'';
+    document.getElementById('f-wp').value        = p.wp||'';
+    document.getElementById('f-desc').value      = p.descripcion||'';
+    document.getElementById('f-estado').value    = p.estado||'activa';
+    existingPhotoUrls = p.fotos ? [...p.fotos] : [];
+    if (p.lat && p.lng) {
+      setGeoStatus('✅ Ubicación cargada', 'ok');
+      document.getElementById('geo-map-preview').style.display='block';
+      setTimeout(()=>initMap('geo-map', p.lat, p.lng, p.titulo, '', 16), 100);
+    }
+  } else {
+    ['f-titulo','f-precio','f-zona','f-direccion','f-sup','f-amb','f-dorm','f-ban','f-lat','f-lng','f-wp','f-desc'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('f-categoria').value='Casa';
+    document.getElementById('f-operacion').value='venta';
+    document.getElementById('f-estado').value='activa';
+  }
+  renderPhotoPreviews();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  if (geoMapPreview) { geoMapPreview.remove(); geoMapPreview=null; }
+  editingId=null;
+}
+function closeModalOutside(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+
+async function saveProperty() {
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.textContent='Guardando...'; saveBtn.disabled=true;
+
+  const lat = parseFloat(document.getElementById('f-lat').value)||null;
+  const lng = parseFloat(document.getElementById('f-lng').value)||null;
+
+  const data = {
+    titulo:      document.getElementById('f-titulo').value.trim(),
+    categoria:   document.getElementById('f-categoria').value,
+    operacion:   document.getElementById('f-operacion').value,
+    precio:      parseFloat(document.getElementById('f-precio').value)||0,
+    zona:        document.getElementById('f-zona').value.trim(),
+    direccion:   document.getElementById('f-direccion').value.trim(),
+    sup:         parseFloat(document.getElementById('f-sup').value)||null,
+    amb:         parseInt(document.getElementById('f-amb').value)||null,
+    dorm:        parseInt(document.getElementById('f-dorm').value)||null,
+    ban:         parseInt(document.getElementById('f-ban').value)||null,
+    lat, lng,
+    wp:          document.getElementById('f-wp').value.trim(),
+    descripcion: document.getElementById('f-desc').value.trim(),
+    estado:      document.getElementById('f-estado').value,
+  };
+
+  if (!data.titulo || !data.precio) {
+    showToast('⚠ Completá título y precio');
+    saveBtn.textContent='Guardar propiedad'; saveBtn.disabled=false;
+    return;
+  }
+
+  try {
+    // Subir fotos nuevas si hay
+    let newPhotoUrls = [];
+    if (pendingPhotos.length > 0) {
+      document.getElementById('upload-progress').style.display='block';
+      const propId = editingId || `temp_${Date.now()}`;
+      newPhotoUrls = await uploadPhotos(pendingPhotos.map(p=>p.file), propId);
+      document.getElementById('upload-progress').style.display='none';
+    }
+
+    data.fotos = [...existingPhotoUrls, ...newPhotoUrls];
+
+    if (editingId) {
+      await updateProperty(editingId, data);
+      const idx = properties.findIndex(p=>p.id===editingId);
+      properties[idx] = { ...properties[idx], ...data };
+      showToast('✅ Propiedad actualizada');
+    } else {
+      const row = await insertProperty(data);
+      properties.unshift(row);
+      showToast('✅ Propiedad creada');
+    }
+
+    closeModal();
+    renderAdmin();
+    populateBarrios();
+
+  } catch(e) {
+    console.error(e);
+    showToast('❌ Error al guardar. Revisá la consola.');
+  }
+
+  saveBtn.textContent='Guardar propiedad'; saveBtn.disabled=false;
+}
+
+function editProperty(id) { openModal(id); }
+
+async function deleteProperty(id) {
+  if (!confirm('¿Eliminar esta propiedad? Esta acción no se puede deshacer.')) return;
+  try {
+    await deletePropertyDB(id);
+    properties = properties.filter(p=>p.id!==id);
+    renderAdmin();
+    populateBarrios();
+    showToast('🗑 Propiedad eliminada');
+  } catch(e) {
+    showToast('❌ Error al eliminar');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════
+//  ARRANCAR
+// ══════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
