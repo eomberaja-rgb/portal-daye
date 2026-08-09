@@ -47,10 +47,8 @@
     justify-content: space-between; height: 64px;
     position: sticky; top: 0; z-index: 100;
   }
-  .nav-logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--ink); cursor: pointer; display: flex; flex-direction: column; line-height: 1.1; }
-  .nav-logo .brand-name { font-size: 20px; letter-spacing: -0.3px; }
-  .nav-logo .brand-sub { font-size: 10px; font-family: 'Inter', sans-serif; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-muted); }
-  .nav-logo span { color: var(--accent); }
+  .nav-logo { cursor: pointer; display: flex; align-items: center; height: 44px; }
+  .nav-logo svg { height: 44px; width: auto; }
   .nav-actions { display: flex; gap: 12px; align-items: center; }
 
   .btn {
@@ -279,7 +277,29 @@
 
 <!-- LOADING -->
 <div class="loading-screen" id="loading-screen">
-  <div class="logo">Dayé<span>.</span></div>
+  <svg viewBox="0 0 420 80" xmlns="http://www.w3.org/2000/svg" height="60" style="filter:brightness(0) invert(1)">
+    <rect x="18" y="22" width="18" height="30" rx="1" fill="#1b2a4a"/>
+    <rect x="21" y="25" width="4" height="5" rx="0.5" fill="white"/><rect x="29" y="25" width="4" height="5" rx="0.5" fill="white"/>
+    <rect x="21" y="33" width="4" height="5" rx="0.5" fill="white"/><rect x="29" y="33" width="4" height="5" rx="0.5" fill="white"/>
+    <rect x="36" y="16" width="22" height="36" rx="1" fill="#1b2a4a"/>
+    <rect x="39" y="20" width="5" height="6" rx="0.5" fill="white"/><rect x="50" y="20" width="5" height="6" rx="0.5" fill="white"/>
+    <rect x="39" y="30" width="5" height="6" rx="0.5" fill="white"/><rect x="50" y="30" width="5" height="6" rx="0.5" fill="white"/>
+    <rect x="39" y="40" width="5" height="6" rx="0.5" fill="white"/><rect x="50" y="40" width="5" height="6" rx="0.5" fill="white"/>
+    <rect x="58" y="8" width="32" height="44" rx="1" fill="#1b2a4a"/>
+    <rect x="62" y="12" width="6" height="7" rx="0.5" fill="white"/><rect x="72" y="12" width="6" height="7" rx="0.5" fill="white"/><rect x="82" y="12" width="6" height="7" rx="0.5" fill="white"/>
+    <rect x="62" y="23" width="6" height="7" rx="0.5" fill="white"/><rect x="72" y="23" width="6" height="7" rx="0.5" fill="white"/><rect x="82" y="23" width="6" height="7" rx="0.5" fill="white"/>
+    <rect x="62" y="34" width="6" height="7" rx="0.5" fill="white"/><rect x="72" y="34" width="6" height="7" rx="0.5" fill="white"/><rect x="82" y="34" width="6" height="7" rx="0.5" fill="white"/>
+    <rect x="90" y="18" width="22" height="34" rx="1" fill="#1b2a4a"/>
+    <rect x="93" y="22" width="5" height="6" rx="0.5" fill="white"/><rect x="104" y="22" width="5" height="6" rx="0.5" fill="white"/>
+    <rect x="93" y="32" width="5" height="6" rx="0.5" fill="white"/><rect x="104" y="32" width="5" height="6" rx="0.5" fill="white"/>
+    <rect x="93" y="42" width="5" height="6" rx="0.5" fill="white"/><rect x="104" y="42" width="5" height="6" rx="0.5" fill="white"/>
+    <rect x="112" y="24" width="18" height="28" rx="1" fill="#1b2a4a"/>
+    <rect x="115" y="27" width="4" height="5" rx="0.5" fill="white"/><rect x="123" y="27" width="4" height="5" rx="0.5" fill="white"/>
+    <rect x="115" y="35" width="4" height="5" rx="0.5" fill="white"/><rect x="123" y="35" width="4" height="5" rx="0.5" fill="white"/>
+    <ellipse cx="74" cy="55" rx="62" ry="5" fill="#1b2a4a"/>
+    <text x="148" y="38" font-family="Georgia,serif" font-size="26" font-weight="700" fill="#1b2a4a" letter-spacing="0.5">Dayé Corporation</text>
+    <text x="149" y="56" font-family="Georgia,serif" font-size="11" font-style="italic" fill="#1b2a4a" letter-spacing="2">Operaciones Inmobiliarias</text>
+  </svg>
   <div class="spinner"></div>
   <p>Cargando propiedades...</p>
 </div>
@@ -287,8 +307,52 @@
 <!-- NAV -->
 <nav id="main-nav" style="display:none">
   <div class="nav-logo" onclick="showView('portal')">
-    <span class="brand-name">Dayé <span>Corporation</span></span>
-    <span class="brand-sub">Operaciones Inmobiliarias</span>
+    <svg viewBox="0 0 420 80" xmlns="http://www.w3.org/2000/svg" height="44">
+      <!-- Edificio izq pequeño -->
+      <rect x="18" y="22" width="18" height="30" rx="1" fill="#1b2a4a"/>
+      <rect x="21" y="25" width="4" height="5" rx="0.5" fill="white"/>
+      <rect x="29" y="25" width="4" height="5" rx="0.5" fill="white"/>
+      <rect x="21" y="33" width="4" height="5" rx="0.5" fill="white"/>
+      <rect x="29" y="33" width="4" height="5" rx="0.5" fill="white"/>
+      <!-- Edificio izq mediano -->
+      <rect x="36" y="16" width="22" height="36" rx="1" fill="#1b2a4a"/>
+      <rect x="39" y="20" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="50" y="20" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="39" y="30" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="50" y="30" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="39" y="40" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="50" y="40" width="5" height="6" rx="0.5" fill="white"/>
+      <!-- Edificio central grande -->
+      <rect x="58" y="8" width="32" height="44" rx="1" fill="#1b2a4a"/>
+      <rect x="62" y="12" width="6" height="7" rx="0.5" fill="white"/>
+      <rect x="72" y="12" width="6" height="7" rx="0.5" fill="white"/>
+      <rect x="82" y="12" width="6" height="7" rx="0.5" fill="white"/>
+      <rect x="62" y="23" width="6" height="7" rx="0.5" fill="white"/>
+      <rect x="72" y="23" width="6" height="7" rx="0.5" fill="white"/>
+      <rect x="82" y="23" width="6" height="7" rx="0.5" fill="white"/>
+      <rect x="62" y="34" width="6" height="7" rx="0.5" fill="white"/>
+      <rect x="72" y="34" width="6" height="7" rx="0.5" fill="white"/>
+      <rect x="82" y="34" width="6" height="7" rx="0.5" fill="white"/>
+      <!-- Edificio der mediano -->
+      <rect x="90" y="18" width="22" height="34" rx="1" fill="#1b2a4a"/>
+      <rect x="93" y="22" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="104" y="22" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="93" y="32" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="104" y="32" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="93" y="42" width="5" height="6" rx="0.5" fill="white"/>
+      <rect x="104" y="42" width="5" height="6" rx="0.5" fill="white"/>
+      <!-- Edificio der pequeño -->
+      <rect x="112" y="24" width="18" height="28" rx="1" fill="#1b2a4a"/>
+      <rect x="115" y="27" width="4" height="5" rx="0.5" fill="white"/>
+      <rect x="123" y="27" width="4" height="5" rx="0.5" fill="white"/>
+      <rect x="115" y="35" width="4" height="5" rx="0.5" fill="white"/>
+      <rect x="123" y="35" width="4" height="5" rx="0.5" fill="white"/>
+      <!-- Base -->
+      <ellipse cx="74" cy="55" rx="62" ry="5" fill="#1b2a4a"/>
+      <!-- Texto -->
+      <text x="148" y="38" font-family="Georgia,serif" font-size="26" font-weight="700" fill="#1b2a4a" letter-spacing="0.5">Dayé Corporation</text>
+      <text x="149" y="56" font-family="Georgia,serif" font-size="11" font-style="italic" fill="#1b2a4a" letter-spacing="2">Operaciones Inmobiliarias</text>
+    </svg>
   </div>
   <div class="nav-actions">
     <button class="btn btn-ghost" onclick="showView('portal')">🏠 Propiedades</button>
