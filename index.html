@@ -862,6 +862,7 @@ function showView(name) {
   document.getElementById('main-nav').style.display = (name === 'login') ? 'none' : 'flex';
   document.getElementById('main-footer').style.display = isPublic ? 'block' : 'none';
   document.getElementById('wa-float').style.display = isPublic ? 'flex' : 'none';
+  window.scrollTo({ top: 0, behavior: 'instant' });
   if (name === 'portal') { populateBarrios(); renderPortal(); }
   if (name === 'map') renderMapView();
   if (name === 'admin') { if (!loggedIn) { showView('login'); return; } renderAdmin(); }
@@ -1092,6 +1093,7 @@ function openDetail(id) {
     </div>`;
 
   showView('detail');
+  window.scrollTo({ top: 0, behavior: 'instant' });
 
   if (p.lat && p.lng) {
     setTimeout(() => initMap('detail-map-container', p.lat, p.lng, p.titulo, p.direccion, 15), 300);
