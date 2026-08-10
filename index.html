@@ -4,7 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dayé Corporation — Operaciones Inmobiliarias</title>
-<meta name="description" content="Dayé Corporation — Operaciones Inmobiliarias. Encontrá tu propiedad ideal en Argentina.">
+<meta name="description" content="Dayé Corporation — Operaciones Inmobiliarias. Propiedades en venta y alquiler en Argentina. Locales, departamentos, casas y terrenos. Consultanos por WhatsApp.">
+<meta name="keywords" content="Dayé Corporation, Daye inmobiliaria, inmobiliaria Argentina, propiedades en venta, alquiler, locales comerciales, departamentos, casas, terrenos">
+<meta name="author" content="Dayé Corporation">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dayeinmobiliaria.com.ar">
+
+<!-- Open Graph (Facebook, WhatsApp) -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dayeinmobiliaria.com.ar">
+<meta property="og:title" content="Dayé Corporation — Operaciones Inmobiliarias">
+<meta property="og:description" content="Propiedades en venta y alquiler. Locales, departamentos, casas y terrenos en Argentina. Contactanos por WhatsApp.">
+<meta property="og:site_name" content="Dayé Corporation">
+<meta property="og:locale" content="es_AR">
+
+<!-- Schema.org Inmobiliaria -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "Dayé Corporation",
+  "description": "Operaciones Inmobiliarias — Compra, venta y alquiler de propiedades en Argentina",
+  "url": "https://dayeinmobiliaria.com.ar",
+  "telephone": ["+5491130794180", "+5491131146870"],
+  "email": "dayecorporationinm@gmail.com",
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "AR"
+  },
+  "sameAs": ["https://wa.me/5491130794180"]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -615,7 +645,19 @@
       <div class="form-group form-full"><label>Título</label><input id="f-titulo" placeholder="Ej: Casa con jardín en Palermo"></div>
       <div class="form-group">
         <label>Categoría</label>
-        <select id="f-categoria" onchange="toggleFrenteFondo()"><option>Casa</option><option>Departamento</option><option>PH</option><option>Oficina</option><option>Local</option><option>Terreno</option></select>
+        <select id="f-categoria" onchange="toggleCategoria(this)">
+          <option>Casa</option>
+          <option>Departamento</option>
+          <option>PH</option>
+          <option>Oficina</option>
+          <option>Local</option>
+          <option>Terreno</option>
+          <option>Fábrica</option>
+          <option>Galpón</option>
+          <option>Cochera</option>
+          <option value="__custom__">Otra (escribir)...</option>
+        </select>
+        <input id="f-categoria-custom" type="text" placeholder="Escribí la categoría..." style="display:none;margin-top:6px">
       </div>
       <div class="form-group">
         <label>Operación</label>
@@ -1430,7 +1472,18 @@ function openModal(id=null) {
   if (id) {
     const p = properties.find(x => x.id === id);
     document.getElementById('f-titulo').value    = p.titulo||'';
-    document.getElementById('f-categoria').value = p.categoria||'Casa';
+    // Categoría — si no está en la lista, usar "Otra"
+    const categorias = ['Casa','Departamento','PH','Oficina','Local','Terreno','Fábrica','Galpón','Cochera'];
+    const catSel = document.getElementById('f-categoria');
+    const catCustom = document.getElementById('f-categoria-custom');
+    if (categorias.includes(p.categoria)) {
+      catSel.value = p.categoria;
+      catCustom.style.display = 'none';
+    } else {
+      catSel.value = '__custom__';
+      catCustom.value = p.categoria || '';
+      catCustom.style.display = 'block';
+    }
     document.getElementById('f-operacion').value = p.operacion||'venta';
     document.getElementById('f-precio').value    = p.precio||'';
     document.getElementById('f-zona').value      = p.zona||'';
@@ -1466,6 +1519,14 @@ function openModal(id=null) {
   document.getElementById('modal-overlay').classList.add('open');
 }
 
+function toggleCategoria(sel) {
+  const custom = document.getElementById('f-categoria-custom');
+  if (custom) {
+    custom.style.display = sel.value === '__custom__' ? 'block' : 'none';
+    if (sel.value === '__custom__') custom.focus();
+  }
+}
+
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
   if (geoMapPreview) { geoMapPreview.remove(); geoMapPreview=null; }
@@ -1480,11 +1541,17 @@ async function saveProperty() {
   const lat = parseFloat(document.getElementById('f-lat').value)||null;
   const lng = parseFloat(document.getElementById('f-lng').value)||null;
 
+  // Leer categoría — puede ser del select o personalizada
+  const catSel = document.getElementById('f-categoria');
+  const categoria = catSel.value === '__custom__'
+    ? (document.getElementById('f-categoria-custom').value.trim() || 'Otro')
+    : catSel.value;
+
   const data = {
     titulo:      document.getElementById('f-titulo').value.trim(),
-    categoria:   document.getElementById('f-categoria').value,
+    categoria,
     operacion:   document.getElementById('f-operacion').value,
-    moneda:      document.getElementById('f-moneda').value,
+    moneda:      document.getElementById('f-moneda') ? document.getElementById('f-moneda').value : 'USD',
     precio:      parseFloat(document.getElementById('f-precio').value)||0,
     zona:        document.getElementById('f-zona').value.trim(),
     direccion:   document.getElementById('f-direccion').value.trim(),
@@ -1492,8 +1559,8 @@ async function saveProperty() {
     amb:         parseInt(document.getElementById('f-amb').value)||null,
     dorm:        parseInt(document.getElementById('f-dorm').value)||null,
     ban:         parseInt(document.getElementById('f-ban').value)||null,
-    frente:      parseFloat(document.getElementById('f-frente').value)||null,
-    fondo:       parseFloat(document.getElementById('f-fondo').value)||null,
+    frente:      parseFloat(document.getElementById('f-frente') ? document.getElementById('f-frente').value : 0)||null,
+    fondo:       parseFloat(document.getElementById('f-fondo') ? document.getElementById('f-fondo').value : 0)||null,
     lat, lng,
     descripcion: document.getElementById('f-desc').value.trim(),
     estado:      document.getElementById('f-estado').value,
