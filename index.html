@@ -540,7 +540,7 @@
 <!-- ══ DETAIL ══ -->
 <div id="view-detail" class="view">
   <div class="detail-container">
-    <button class="detail-back" onclick="showView('portal')">← Volver al listado</button>
+    <button class="detail-back" onclick="window.location.hash='';showView('portal')">← Volver al listado</button>
     <div id="detail-content"></div>
   </div>
 </div>
@@ -787,8 +787,31 @@ async function init() {
   await loadProperties();
   document.getElementById('loading-screen').style.display = 'none';
   document.getElementById('main-nav').style.display = 'flex';
+
+  // Si hay un hash en la URL tipo #prop-15, abrir esa propiedad directo
+  const hash = window.location.hash;
+  if (hash && hash.startsWith('#prop-')) {
+    const id = parseInt(hash.replace('#prop-', ''));
+    if (id && properties.find(p => p.id === id)) {
+      openDetail(id);
+      return;
+    }
+  }
   showView('portal');
 }
+
+// Escuchar cambios de hash (botón atrás del navegador)
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash;
+  if (hash && hash.startsWith('#prop-')) {
+    const id = parseInt(hash.replace('#prop-', ''));
+    if (id && properties.find(p => p.id === id)) {
+      openDetail(id);
+    }
+  } else if (hash === '' || hash === '#') {
+    showView('portal');
+  }
+});
 
 // ══════════════════════════════════════════════
 //  SUPABASE — CRUD
@@ -1099,11 +1122,15 @@ function openDetail(id) {
             11 3114-6870
           </a>
           <p style="font-size:11px;color:var(--ink-muted);text-align:center">WhatsApp con el mensaje prellenado</p>
+          <button onclick="shareProperty(${p.id})" style="width:100%;margin-top:12px;background:var(--cream);border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;gap:8px">
+            🔗 Copiar link de esta propiedad
+          </button>
         </div>
       </div>
     </div>`;
 
   showView('detail');
+  window.location.hash = `prop-${id}`;
   window.scrollTo({ top: 0, behavior: 'instant' });
 
   if (p.lat && p.lng) {
@@ -1604,6 +1631,24 @@ document.addEventListener('touchend', e => {
     if (Math.abs(diff) > 40) slideGallery(diff > 0 ? 1 : -1);
   }
 }, { passive: true });
+function shareProperty(id) {
+  const url = `${window.location.origin}${window.location.pathname}#prop-${id}`;
+  if (navigator.share) {
+    const p = properties.find(x => x.id === id);
+    navigator.share({
+      title: p ? p.titulo : 'Dayé Corporation',
+      text: p ? `${p.titulo} — ${formatPrice(p)}` : 'Mirá esta propiedad',
+      url
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('🔗 Link copiado al portapapeles');
+    }).catch(() => {
+      showToast('Copiá: ' + url);
+    });
+  }
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
